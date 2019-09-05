@@ -13,7 +13,10 @@ if (process.argv.length < 3) {
 const testName = process.argv[2];
 
 if (testName !== "single" && testName !== "composite" && testName !== "simpleToFile" && testName !== "simpleToBuffer") {
-  throw new Error("No such test available! Available tests are: single, composite, simpleToFile or simpleToBuffer");
+  throw new Error(
+    "No such test available! Available tests are: single, composite, simpleToFile or simpleToBuffer. " +
+      "Use 'all' to run all tests with all parameter combinations"
+  );
 }
 
 const concurrentOps = process.argv.length > 3 ? parseInt(process.argv[3]) : 1;
@@ -25,6 +28,12 @@ sharp.concurrency(concurrency);
 const disableCache = process.argv.length > 5 && process.argv[5] === "false";
 
 sharp.cache(!disableCache);
+
+const limitExecution = process.argv.length > 6 && process.argv[6] === "true";
+
+const maxAllowedMemoryUsage = 2000;
+
+const maxAllowedRuns = 3; //Math.round((50 * 25) / concurrentOps);
 
 console.log(
   "Will run test '" + testName + "' with " + concurrentOps + " concurrent operation" + (concurrentOps > 1 ? "s" : "")
@@ -61,6 +70,16 @@ const runTest = () => {
 };
 
 const run = () => {
+  if (limitExecution) {
+    if (getRSS() >= maxAllowedMemoryUsage) {
+      console.log("Memory usage reached 2GB, terminating");
+      process.exit(0);
+    } else if (runCounter > maxAllowedRuns) {
+      console.log(runCounter - 1 + " runs complete, terminating");
+      process.exit(0);
+    }
+  }
+
   console.log("Starting run #" + runCounter);
   const startTime = Date.now();
   runTest()
@@ -90,17 +109,27 @@ const run = () => {
     });
 };
 
-process.on("SIGINT", () => {
+const recordStats = () => {
+  if (!fs.existsSync("results")) {
+    fs.mkdirSync("results");
+  }
+
   const parser = new Parser({
     fields: ["runId", "executionTime", "rss"]
   });
   const csv = parser.parse(results);
-  fs.writeFileSync("data-" + Date.now(), csv);
+  fs.writeFileSync("results/" + [testName, concurrentOps, concurrency, disableCache].join("-"), csv);
   process.exit();
-});
+};
 
-console.log("Current memory usage: " + getRSS() + "MB");
+if (limitExecution) {
+  process.on("exit", recordStats);
+} else {
+  process.on("SIGINT", recordStats);
+}
 
-console.log("Will start running the test in 2s...");
+console.log("Initial memory usage: " + getRSS() + "MB");
 
-setTimeout(run, 2000);
+console.log("Will start running the test in 1 second...");
+
+setTimeout(run, 1000);
