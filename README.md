@@ -31,7 +31,7 @@ If you provide the word **false** for the **cache** parameter, then sharp cachin
 
 To run the tests with a different memory allocator, try this:
 
-`LD_OVERLOAD=<path-to-allocator-lib> npm run test ...`
+`LD_PRELOAD=<path-to-allocator-lib> npm run test ...`
 
 For testing purposes I have included `libjemalloc.so.1` in the repository. Be careful when using it on your system!
 
