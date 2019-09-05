@@ -1,0 +1,16 @@
+{
+  "name": "experiment-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "b.js",
+  "scripts": {
+    "test": "node run-test.js",
+    "test:debug": "node --inspect=55555 run-test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sharp": "^0.23.0"
+  }
+}
