@@ -6,7 +6,7 @@ const CONCURRENCY_OPTS = [0, 1];
 
 const CACHE_OPTS = [false, true];
 
-const CONCURRENT_OPS = 1;
+const CONCURRENT_OPS = 10;
 
 const runSingleTest = (testName, concurrentOps, concurrency, disableCache) =>
   new Promise((resolve, reject) => {

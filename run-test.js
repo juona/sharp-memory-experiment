@@ -33,7 +33,7 @@ const limitExecution = process.argv.length > 6 && process.argv[6] === "true";
 
 const maxAllowedMemoryUsage = 2000;
 
-const maxAllowedRuns = 3; //Math.round((50 * 25) / concurrentOps);
+const maxAllowedRuns = Math.round((40 * 25) / concurrentOps);
 
 console.log(
   "Will run test '" + testName + "' with " + concurrentOps + " concurrent operation" + (concurrentOps > 1 ? "s" : "")
