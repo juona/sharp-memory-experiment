@@ -41,14 +41,18 @@ console.log(
 
 console.log("Sharp concurrency is " + concurrency + ", sharp cache is " + (disableCache ? "disabled" : "enabled"));
 
-if (!fs.existsSync(testName)) {
-  fs.mkdirSync(testName);
+const imagesDirectory = path.join("images", testName);
+
+if (!fs.existsSync(imagesDirectory)) {
+  fs.mkdirSync(imagesDirectory, {
+    recursive: true
+  });
 }
 
 console.log("Clearing the test directory...");
-const files = fs.readdirSync(testName);
+const files = fs.readdirSync(imagesDirectory);
 for (const file of files) {
-  fs.unlinkSync(path.join(testName, file), err => {
+  fs.unlinkSync(path.join(imagesDirectory, file), err => {
     if (err) throw err;
   });
 }
@@ -64,7 +68,7 @@ const runTest = () => {
   const promises = [];
   let localCounter = 1;
   for (let i = 0; i < concurrentOps; i++) {
-    promises.push(generate[testName](testName, runCounter + "-" + localCounter++));
+    promises.push(generate[testName](imagesDirectory, runCounter + "-" + localCounter++));
   }
   return Promise.all(promises);
 };
