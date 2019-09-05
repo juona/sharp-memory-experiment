@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
+const { Parser } = require("json2csv");
 const generate = require("./generatePrintFile");
 
 if (process.argv.length < 3) {
@@ -48,7 +49,7 @@ const getRSS = () => Math.round(process.memoryUsage().rss / 1000000);
 
 let runCounter = 1;
 
-let maxMemoryUsed = 0;
+const results = [];
 
 const runTest = () => {
   const promises = [];
@@ -65,16 +66,21 @@ const run = () => {
   runTest()
     .then(() => {
       const memoryUsed = getRSS();
-      maxMemoryUsed = Math.max(memoryUsed, maxMemoryUsed);
+      const executionTime = (Date.now() - startTime) / 1000;
       console.log(
         "Run #" +
           runCounter +
           " is complete. Execution time: " +
-          (Date.now() - startTime) / 1000 +
+          executionTime +
           "s. Current memory usage: " +
           memoryUsed +
           "MB"
       );
+      results.push({
+        runId: runCounter,
+        executionTime,
+        rss: memoryUsed
+      });
       runCounter++;
       setTimeout(run, 100);
     })
@@ -83,6 +89,15 @@ const run = () => {
       process.exit(1);
     });
 };
+
+process.on("SIGINT", () => {
+  const parser = new Parser({
+    fields: ["runId", "executionTime", "rss"]
+  });
+  const csv = parser.parse(results);
+  fs.writeFileSync("data-" + Date.now(), csv);
+  process.exit();
+});
 
 console.log("Current memory usage: " + getRSS() + "MB");
 
