@@ -8,6 +8,10 @@ const CACHE_OPTS = [false, true];
 
 const CONCURRENT_OPS = 10;
 
+const requestedTestNames = process.argv.slice(2).filter(requestedTestName => TEST_NAMES.includes(requestedTestName));
+
+const testNames = requestedTestNames.length > 0 ? requestedTestNames : TEST_NAMES;
+
 const runSingleTest = (testName, concurrentOps, concurrency, disableCache) =>
   new Promise((resolve, reject) => {
     console.log("Launching test " + [testName, concurrentOps, concurrency, disableCache].join(" ") + "\n");
@@ -33,7 +37,7 @@ const runSingleTest = (testName, concurrentOps, concurrency, disableCache) =>
 
 let promise = Promise.resolve();
 
-TEST_NAMES.forEach(testName => {
+testNames.forEach(testName => {
   CONCURRENCY_OPTS.forEach(concurrency => {
     CACHE_OPTS.forEach(disableCache => {
       promise = promise.then(() => runSingleTest(testName, CONCURRENT_OPS, concurrency, disableCache));
